@@ -1,0 +1,27 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Verify scripts
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: PS-Check
+        uses: SleepySysadmin/github-action-pscheck@v0.4.2
+      - name: Lint Markdown
+        uses: tomwhross/write-good-action@v1.5
+        with:
+          directory: .
+      - name: Sql-Lint
+        uses: Bidaya0/sql-lint-in-action@v0.0.2
+        with:
+          path: .
+          
