@@ -111,17 +111,19 @@ function Get-Wiki ($teamproject)
 
 function Get-WikiChangedDate ($teamproject)
 {
-    $wiki = Get-Wiki -teamproject $teamproject
-    if ($wiki)
+    $wikis = Get-Wiki -teamproject $teamproject
+    $result = New-Object -TypeName DateNamePair -Property @{ Date = $mindate; Name = "" }
+    foreach ($wiki in $wikis)
     {
         $commits = Get-JsonOutput -uri "$coll/$teamproject/_apis/git/repositories/$($wiki.repositoryId)/Commits"
         $latestcommit = $commits | Sort-Object { [datetime]$_.committer.date } | Select-Object -Last 1
-        return $latestcommit.committer.date        
+        if ($latestcommit.committer.date -gt $result.Date)
+        {
+            $result.Date = $latestcommit.committer.date
+            $result.Name = "$($wiki.name) ($($wiki.type))"
+        }
     }
-    else 
-    {
-        return $mindate
-    }
+    return $result
 }
 
 function Get-LatestWorkItemChange ($teamproject)
@@ -329,7 +331,10 @@ foreach ($teamproject in $teamprojects)
     $item.TeamProjectName = $teamproject.name
     Write-Log "Processing Team Project: $($teamproject.name)" -WriteToHost
 
-    $item.Wiki = (Get-WikiChangedDate -teamproject $teamproject.name).ToLocalTime()
+    $latest = Get-WikiChangedDate -teamproject $teamproject.name
+    Write-Log "Last changed Wiki: $($latest.Name)"
+    $item.Wiki = $latest.Date.ToLocalTime()
+
     $item.WorkItems = (Get-LatestWorkItemChange -teamproject $teamproject.name).ToLocalTime()
     $item.WorkItemQueries = (Get-LatestQueryChange -teamproject $teamproject.name).ToLocalTime()
     $item.Tfvc = (Get-LatestTfvcChanges -teamproject $teamproject.name).ToLocalTime()
