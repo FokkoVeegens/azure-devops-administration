@@ -115,6 +115,10 @@ foreach ($onpremservicehook in $onpremservicehooks)
         Write-Host "This subscription cannot be migrated because it contains a basic auth password for user '$($onpremservicehook.consumerInputs.basicAuthUsername)'" -ForegroundColor Red
         continue
     }
+    if ($onpremservicehook.consumerId -eq "teams")
+    {
+        Write-Host "Microsoft Teams Service Hooks are managed by Microsoft Teams. It needs to be recreated from the Microsoft Teams application. The action is '$($onpremservicehook.consumerActionId)'. This Service Hook will not be migrated."
+    }
     try {
         New-CloudServiceHook -publisherId $onpremservicehook.publisherId `
         -eventType $onpremservicehook.eventType `
