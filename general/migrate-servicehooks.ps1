@@ -109,7 +109,7 @@ $projectsonprem = Get-ProjectsOnPrem
 foreach ($onpremservicehook in $onpremservicehooks)
 {
     $projectofsubs = $projectsonprem | Where-Object { $_.id -eq $onpremservicehook.publisherInputs.projectId }
-    Write-Host "Processing project $($projectofsubs.name), publisher $($onpremservicehook.publisherId), eventType $($onpremservicehook.eventType), id $($onpremservicehook.id)"
+    Write-Host "Processing project '$($projectofsubs.name)', publisher '$($onpremservicehook.publisherId)', eventType '$($onpremservicehook.eventType)', id '$($onpremservicehook.id)'"
     if ($onpremservicehook.consumerInputs.basicAuthPassword)
     {
         Write-Host "This subscription cannot be migrated because it contains a basic auth password for user '$($onpremservicehook.consumerInputs.basicAuthUsername)'" -ForegroundColor Red
@@ -117,7 +117,8 @@ foreach ($onpremservicehook in $onpremservicehooks)
     }
     if ($onpremservicehook.consumerId -eq "teams")
     {
-        Write-Host "Microsoft Teams Service Hooks are managed by Microsoft Teams. It needs to be recreated from the Microsoft Teams application. The action is '$($onpremservicehook.consumerActionId)'. This Service Hook will not be migrated."
+        Write-Host "Microsoft Teams Service Hooks are managed by Microsoft Teams. It needs to be recreated from the Microsoft Teams application. The action is '$($onpremservicehook.consumerActionId)'. This Service Hook will not be migrated." -ForegroundColor Yellow
+        continue
     }
     try {
         New-CloudServiceHook -publisherId $onpremservicehook.publisherId `
@@ -132,6 +133,6 @@ foreach ($onpremservicehook in $onpremservicehooks)
     }
     catch {
         $errormsg = ($_.ErrorDetails.Message | ConvertFrom-Json).message
-        Write-Host "Service Hook failed; $errormsg" -ForegroundColor Yellow
+        Write-Host "Service Hook failed; $errormsg" -ForegroundColor Red
     }
 }
