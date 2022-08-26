@@ -35,11 +35,6 @@ function Invoke-RestPost ($uri, $body, [bool]$usevalueproperty = $true)
     }
 }
 
-function Invoke-RestDelete ($uri)
-{
-    Invoke-WebRequest -Uri $uri -Method DELETE -ContentType "application/json" -Headers $header | Out-Null
-}
-
 function New-AgentPool ($name, $autoProvision = $true, $autoUpdate = $true)
 {
     $ap = "false"
