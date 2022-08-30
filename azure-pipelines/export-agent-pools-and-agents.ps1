@@ -1,5 +1,8 @@
+$ErrorActionPreference = "Stop"
+
 $coll = "https://dev.azure.com/YOURORG"
-$filepath = "C:\temp\agentsandpools.csv"
+$filepathagentsandpools = "C:\temp\agentsandpools.csv"
+$filepathusercapabilities = "C:\temp\usercapabilities.csv"
 $pat = Get-Content -Path ".\pat.txt"
 $encodedPat = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$pat"))
 $header = @{Authorization = "Basic $encodedPat"}
@@ -18,27 +21,42 @@ Class AgentPoolEntry {
     [string]$AgentUserName
     [string]$AgentComputerName
     [string]$AgentOS
+    [bool]$AgentHasUserCapabilities
 }
- 
-function Get-Agents ($poolid)
+
+Class UserCapability {
+    [int]$AgentId
+    [string]$UserCapabilityKey
+    [string]$UserCapabilityValue
+}
+
+function Get-JsonOutput($uri, [bool]$usevalueproperty = $true)
 {
-    $uri = "$apiurl/distributedtask/pools/$poolid/agents?includeCapabilities=true"
-    $response = invoke-webrequest -Uri $uri -Method GET -ContentType "application/json" -Headers $header
-    $agents = ($response.Content | ConvertFrom-Json).value
-    return $agents
+    $output = (invoke-webrequest -Uri $uri -Method GET -ContentType "application/json" -Headers $header) | ConvertFrom-Json
+    if ($usevalueproperty)
+    {
+        return $output.value
+    }
+    else 
+    {
+        return $output
+    }
 }
 
 function Get-Pools ()
 {
-    $uri = "$apiurl/distributedtask/pools"
-    $response = invoke-webrequest -Uri $uri -Method GET -ContentType "application/json" -Headers $header
-    $agentpools = ($response.Content | ConvertFrom-Json).value  
-    return $agentpools
+    return Get-JsonOutput -uri "$apiurl/distributedtask/pools"
+}
+
+function Get-Agents ($poolid)
+{
+    return Get-JsonOutput -uri "$apiurl/distributedtask/pools/$poolid/agents?includeCapabilities=true"
 }
 
 $agentpools = Get-Pools
  
 $agentpoolentries = New-Object System.Collections.ArrayList
+$usercapabilities = New-Object System.Collections.ArrayList
 foreach ($agentpool in $agentpools)
 {
     Write-Host "Processing pool '$($agentpool.name)'"
@@ -64,10 +82,25 @@ foreach ($agentpool in $agentpools)
         $agentpoolentry.AgentUserName = $agent.systemCapabilities.USERNAME
         $agentpoolentry.AgentComputerName = $agent.systemCapabilities.COMPUTERNAME
         $agentpoolentry.AgentOS = $agent.systemCapabilities.'Agent.OS'
+        $agentpoolentry.AgentHasUserCapabilities = ($null -ne $agent.userCapabilities)
         $agentpoolentries.Add($agentpoolentry) | Out-Null
+
+        if ($agent.userCapabilities)
+        {
+            $members = $agent.userCapabilities | Get-Member -MemberType NoteProperty
+            foreach ($member in $members)
+            {
+                $usercapentry = New-Object UserCapability
+                $usercapentry.AgentId = $agent.id
+                $usercapentry.UserCapabilityKey = $member.name
+                $usercapentry.UserCapabilityValue = $agent.userCapabilities."$($member.name)"
+                $usercapabilities.Add($usercapentry) | Out-Null
+            }
+        }
     }
 }
 
 Write-Host "Writing CSV file"
-$agentpoolentries | Export-Csv -Path $filepath -UseCulture
+$agentpoolentries | Export-Csv -Path $filepathagentsandpools -UseCulture
+$usercapabilities | Export-Csv -Path $filepathusercapabilities -UseCulture
 Write-Host "Done"
