@@ -1,6 +1,6 @@
 # This script will fix the links to the queues and agent pools after an Azure DevOps Data Import (onprem to the cloud migration)
 # First the pools and queues will need to be recreated using their respective scripts
-# export-pipelines.ps1 needs to be run first on the on-prem environment. This will provide the input files for this script.
+# export-pipelines-json-for-dataimport.ps1 needs to be run first on the on-prem environment. This will provide the input files for this script.
 # I know, it's not the most beautiful script I've written. Maybe I'll refactor someday. Otherwise I'm open to pull requests ;-)
 
 $ErrorActionPreference = "Stop"
