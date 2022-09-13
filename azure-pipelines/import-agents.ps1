@@ -1,5 +1,6 @@
 # This script will re-register all agents in the right pools and with the right user-defined capabilities, as part of the Azure DevOps Data Import
 # It is required to first run the script export-agent-pools-and-agents.ps1 to generate the input files
+# Then a column needs to be added with the name "AgentPassword" and it needs to be filled for agents that do not use the NETWORK SERVICE account
 
 # **********************************************
 # This script has not been tested yet!!
@@ -127,6 +128,16 @@ function Get-AgentByName ($agentname, $poolid)
 $agentpools = Get-AgentPools
 foreach ($agent in $agentsandpools)
 {
+    if ($agent.AgentOS -ne "Windows_NT")
+    {
+        Write-Host "Skipping agent '$($agent.AgentName)', because it is a non-Windows agent"
+        continue
+    }
+    if ($agent.AgentStatus -eq "offline")
+    {
+        Write-Host "Skipping agent '$($agent.AgentName)', because it was offline in the old situation"
+        continue
+    }
     if ($agent.AgentUserName.EndsWith("$"))
     {
         # Uses NETWORK SERVICE account
@@ -159,7 +170,7 @@ foreach ($agent in $agentsandpools)
     {
         Add-UserCapabilities -agentid $agentid -poolid $agentpoolid
     }
-    if ($agent.AgentEnabled -eq "False" -or $agent.AgentStatus -eq "offline")
+    if ($agent.AgentEnabled -eq "False")
     {
         Update-AgentState -agentid $agentid -enabled $false -poolid $agentpoolid
     }
