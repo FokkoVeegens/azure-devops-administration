@@ -6,6 +6,7 @@ $header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]
 $outputfile = "C:\temp\deploymentgroup_agents.csv"
 
 Class Agent {
+    [string]$TeamProject
     [int]$PoolId
     [string]$PoolName
     [string]$AgentName
@@ -30,9 +31,14 @@ function Get-JsonOutput($uri, [bool]$usevalueproperty = $true)
     }
 }
 
-function Get-DeploymentPools ()
+function Get-TeamProjects ()
 {
-    return Get-JsonOutput -uri "$coll/_apis/distributedtask/deploymentPools/deploymentPoolsSummary"
+    return Get-JsonOutput -uri "$coll/_apis/projects"
+}
+
+function Get-DeploymentPools ($teamproject)
+{
+    return Get-JsonOutput -uri "$coll/$teamproject/_apis/distributedtask/deploymentgroups"
 }
 
 function Get-Agents ($poolid)
@@ -40,31 +46,33 @@ function Get-Agents ($poolid)
     return Get-JsonOutput -uri "$coll/_apis/distributedtask/pools/$poolid/agents?includeCapabilities=true"
 }
 
-$deploymentPools = Get-DeploymentPools
+$teamprojects = Get-TeamProjects
 $agentsarray = New-Object System.Collections.ArrayList
-foreach ($deploymentPool in $deploymentPools)
+foreach ($teamproject in $teamprojects)
 {
-    Write-Host "Processing pool '$($deploymentPool.pool.name)'"
-    if ($deploymentPool.onlineAgentsCount -eq 0)
+    Write-Host "Processing Team Project '$($teamproject.name)'"
+    $deploymentPools = Get-DeploymentPools -teamproject $teamproject.name
+    foreach ($deploymentPool in $deploymentPools)
     {
-        Write-Host "Skipping pool, no online agents"
-        continue
-    }
-    $agents = Get-Agents -poolid $deploymentPool.pool.id
-    foreach ($agent in $agents)
-    {
-        $agentobject = New-Object Agent
-        $agentobject.PoolId = $deploymentPool.pool.id
-        $agentobject.PoolName = $deploymentPool.pool.name
-        $agentobject.AgentName = $agent.name
-        $agentobject.AgentEnabled = $agent.enabled
-        $agentobject.AgentStatus = $agent.status
-        $agentobject.AgentComputerName = $agent.systemCapabilities.'Agent.ComputerName'
-        $agentobject.AgentHomeDirectory = $agent.systemCapabilities.'Agent.HomeDirectory'
-        $agentobject.AgentUsername = $agent.systemCapabilities.USERNAME
-        $agentobject.AgentUserdomain = $agent.systemCapabilities.USERDOMAIN
-        $agentsarray.Add($agentobject) | Out-Null
+        Write-Host "Processing pool '$($deploymentPool.pool.name)'"
+        $agents = Get-Agents -poolid $deploymentPool.pool.id
+        foreach ($agent in $agents)
+        {
+            $agentobject = New-Object Agent
+            $agentobject.TeamProject = $teamproject.name
+            $agentobject.PoolId = $deploymentPool.pool.id
+            $agentobject.PoolName = $deploymentPool.pool.name
+            $agentobject.AgentName = $agent.name
+            $agentobject.AgentEnabled = $agent.enabled
+            $agentobject.AgentStatus = $agent.status
+            $agentobject.AgentComputerName = $agent.systemCapabilities.'Agent.ComputerName'
+            $agentobject.AgentHomeDirectory = $agent.systemCapabilities.'Agent.HomeDirectory'
+            $agentobject.AgentUsername = $agent.systemCapabilities.USERNAME
+            $agentobject.AgentUserdomain = $agent.systemCapabilities.USERDOMAIN
+            $agentsarray.Add($agentobject) | Out-Null
+        }
     }
 }
+
 
 $agentsarray | Export-Csv -Path $outputfile -UseCulture
