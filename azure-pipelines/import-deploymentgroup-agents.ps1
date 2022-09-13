@@ -5,7 +5,6 @@ $ErrorActionPreference = "Stop"
 
 $pat = Get-Content -Path ".\pat.txt"
 $org = "http://dev.azure.com/YOURORG"
-$encodedPat = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$pat"))
 
 $agents = Import-Csv -Path "C:\Temp\deploymentgroup_agents.csv" -UseCulture
 
