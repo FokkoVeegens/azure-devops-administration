@@ -7,7 +7,7 @@ $pat = Get-Content -Path ".\pat.txt"
 $header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
 $org = "dev.azure.com/YOURORG"
 $protocol = "https://"
-$inputpath = "C:\temp\out.csv"
+$inputpath = "C:\temp\extensions.csv"
 
 function Invoke-RestPost ($uri, $body, [bool]$usevalueproperty = $true)
 {
@@ -22,16 +22,34 @@ function Invoke-RestPost ($uri, $body, [bool]$usevalueproperty = $true)
     }
 }
 
-$extensions = Import-Csv -Path $inputpath
+$extensions = Import-Csv -Path $inputpath -UseCulture
 $extensions = $extensions | Select-Object PublisherId,ExtensionId | Sort-Object -Property PublisherId,ExtensionId -Unique
 foreach ($extension in $extensions)
 {
+    if (!$extension.PublisherId)
+    {
+        continue
+    }
     try {
-        Invoke-RestPost -uri "$($protocol)extmgmt.$($org)/_apis/extensionmanagement/installedextensionsbyname/$($extension.PublisherId)/$($extension.ExtensionId)?api-version=7.1-preview.1" -body "" -usevalueproperty $false
+        if ($extension.ExtensionId -eq "TimetrackerOnPremises" -and $extension.PublisherId -eq "7pace")
+        {
+            Invoke-RestPost -uri "$($protocol)extmgmt.$($org)/_apis/extensionmanagement/installedextensionsbyname/7pace/Timetracker?api-version=7.1-preview.1" -body "" -usevalueproperty $false
+        }
+        else 
+        {
+            Invoke-RestPost -uri "$($protocol)extmgmt.$($org)/_apis/extensionmanagement/installedextensionsbyname/$($extension.PublisherId)/$($extension.ExtensionId)?api-version=7.1-preview.1" -body "" -usevalueproperty $false
+        }
         Write-Host "Extension '$($extension.PublisherId).$($extension.ExtensionId)' installed" -ForegroundColor Green
     }
     catch {
-        $errormsg = ($_.ErrorDetails.Message | ConvertFrom-Json).message
+        if ($_.ErrorDetails)
+        {
+            $errormsg = ($_.ErrorDetails.Message | ConvertFrom-Json).message
+        }
+        else 
+        {
+            $errormsg = $_.Exception.Message
+        }
         Write-Host "Extension '$($extension.PublisherId).$($extension.ExtensionId)' skipped; $errormsg" -ForegroundColor Yellow
     }    
 }
