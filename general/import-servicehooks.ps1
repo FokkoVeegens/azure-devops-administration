@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop"
+
 $protocol = "https://"
 $org = "dev.azure.com/YOURORG"
 $pat = Get-Content -Path ".\pat.txt"
@@ -71,7 +73,7 @@ function New-ServiceHook ($publisherId, $eventType, $resourceVersion, $consumerI
 
 function Get-TeamProjects ()
 {
-    return Get-JsonOutput -uri "$org/_apis/projects"
+    return Get-JsonOutput -uri "$($protocol)$($org)/_apis/projects"
 }
 
 function Remove-ServiceHook ($subscriptionId)
@@ -102,7 +104,7 @@ foreach ($inputfile in $inputfiles)
         Write-Host "Skipping file because it is already done"
         continue
     }
-    $onpremservicehook = $inputfile.FullName | Get-Content | ConvertFrom-Json -Depth 100
+    $onpremservicehook = Get-Content -Path $inputfile.FullName | ConvertFrom-Json -Depth 100
     $projectofsubs = $teamprojects | Where-Object { $_.id -eq $onpremservicehook.publisherInputs.projectId }
     Write-Host "Processing project $($projectofsubs.name), publisher $($onpremservicehook.publisherId), eventType $($onpremservicehook.eventType), id $($onpremservicehook.id)"
     if ($onpremservicehook.consumerInputs.basicAuthPassword)
