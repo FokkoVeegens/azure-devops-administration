@@ -1,5 +1,9 @@
 # Will restore Agent Queues in all Team projects as part of the Azure DevOps Data Import
 # First run export-agentqueues.ps1 to create the input files
+# This script randomly fails with the following error message. I have not found the issue. Running it multiple times will finish the import
+# {"$id":"1","innerException":null,"message":"TF400898: An Internal Error Occurred. Activity Id:
+# 13ece649-73db-4b53-a501-6598b03e7f0d.","typeName":"System.Web.Http.HttpResponseException,
+# System.Web.Http","typeKey":"HttpResponseException","errorCode":0,"eventId":0}
 
 $ErrorActionPreference = "Stop"
 
