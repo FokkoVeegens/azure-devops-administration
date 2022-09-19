@@ -5,7 +5,7 @@
 $ErrorActionPreference = "Stop"
 
 $pat = Get-Content -Path ".\pat.txt"
-$org = "https://dev.azure.com/anywhere365dev"
+$org = "https://dev.azure.com/YOURORG"
 $encodedPat = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$pat"))
 $header = @{Authorization = "Basic $encodedPat"}
 $logsdir = "C:\temp\agentinstalllogs"
