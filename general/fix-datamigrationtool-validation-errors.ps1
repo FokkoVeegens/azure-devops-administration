@@ -2,15 +2,41 @@
 # by the migrator.exe that is part of the DataMigrationTool
 # The Repairables csv file should be a file containing 2 columns; GroupSid and ScopeId
 # More information can be found here: https://learn.microsoft.com/en-us/azure/devops/migrate/migration-troubleshooting?view=azure-devops#isverror-100014
+# The Process Templates File Path contains xml files that have been exported (witd, categories etc) and are ready to import
 
 $ErrorActionPreference = "Stop"
 $TFSSecurityExePath = "C:\Program Files\Azure DevOps Server 2020\Tools\TFSSecurity.exe"
-$coll = "https://tfs.anywhere365.net/tfs/Anywhere365%20UCC"
+$WitAdminExePath = "C:\Program Files\Microsoft Visual Studio\2022\TeamExplorer\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\witadmin.exe"
+$coll = "http://tfsserver:8080/tfs/DefaultCollection"
+$pat = Get-Content -Path ".\pat.txt"
+$header = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
+$processtemplatefilespath = "C:\Temp\ProcessTemplateFiles"
 $repairablespath = "C:\Temp\input.csv"
 
-if (!(Get-Alias -Name tfssecurity -ErrorAction SilentlyContinue))
+Set-Alias -Name tfssecurity -Value $TFSSecurityExePath
+Set-Alias -Name witadmin -Value $WitAdminExePath
+
+function Import-Categories ($teamproject)
 {
-    New-Alias -Name tfssecurity -Value $TFSSecurityExePath
+    Write-Host "Updating categories for Team Project '$teamproject'"
+    witadmin importcategories /collection:$coll /p:$teamproject /f:"$processtemplatefilespath\$teamproject-categories.xml"
+}
+
+function Import-Witd ($teamproject, $witdname)
+{
+    Write-Host "Updating '$witdname' for Team Project '$teamproject'"
+    witadmin importwitd /collection:$coll /p:$teamproject /f:"$processtemplatefilespath\$teamproject-$witdname.xml"
+}
+
+function Import-ProcessConfig ($teamproject)
+{
+    Write-Host "Updating processconfig for Team Project '$teamproject'"
+    witadmin importprocessconfig /collection:$coll /p:$teamproject /f:"$processtemplatefilespath\$teamproject-processconfig.xml"
+}
+
+function Invoke-RestPatch ($uri, $body)
+{
+    Invoke-WebRequest -Uri $uri -Method PATCH -ContentType "application/json" -Body $body -Headers $header
 }
 
 function Get-ScriptDirectory
