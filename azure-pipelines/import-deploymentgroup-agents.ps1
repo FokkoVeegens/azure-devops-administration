@@ -1,4 +1,5 @@
 # First export-deploymentgroup-agents.ps1 needs to be run
+# Check the deployment group names before running this script. These names can change during the migration process
 
 $ErrorActionPreference = "Stop"
 
