@@ -290,7 +290,7 @@ function Get-LatestDeploymentDate ($teamproject)
 function Get-GenericLastChange ($teamproject, $apipath, $changeddatepropertyname = "modifiedOn", $namepropertyname = "name")
 {
     $objects = Get-JsonOutput -uri "$coll/$teamproject/_apis/$apipath"
-    $lastchanged = $objects | Sort-Object { [datetime]$_."$changeddatepropertyname" } | Select-Object -Last 1
+    $lastchanged = $objects | Where-Object { $_."$changeddatepropertyname" } | Sort-Object { [datetime]$_."$changeddatepropertyname" } | Select-Object -Last 1
     if ($lastchanged)
     {
         return (New-Object -TypeName DateNamePair -Property @{ Date = $lastchanged."$changeddatepropertyname"; Name = $lastchanged."$namepropertyname" } )
