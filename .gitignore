@@ -350,4 +350,4 @@ MigrationBackup/
 .ionide/
 
 # Custom: exclude files containing an Azure DevOps Personal Access Token
-pat.txt
+pat*.txt
