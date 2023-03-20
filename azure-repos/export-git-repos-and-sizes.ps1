@@ -15,7 +15,7 @@ Class RepoResult
     [string]$Id
     [string]$TeamProject
     [string]$Name
-    [int]$ByteSize
+    [long]$ByteSize
     [bool]$IsDisabled
 }
 
