@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$org = "delta-n-devops" # Azure DevOps Organization (exclude https://dev.azure.com/)
+$org = "YOURORG" # Azure DevOps Organization (exclude https://dev.azure.com/)
 $outputfilepath = "C:\temp\environments.csv" # Path to the CSV file containing the output
 
 $Collection = "https://dev.azure.com/$org"
