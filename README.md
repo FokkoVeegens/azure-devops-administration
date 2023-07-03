@@ -13,3 +13,19 @@ Generally I put variables at the top, that need to be configured prior to runnin
 $pat = Get-Content -Path ".\pat.txt"
 ```
 You'll need a pat.txt file in the working folder, containing just one [Azure DevOps Personal Access Token](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=Windows) and nothing else. It will be used for authentication.
+
+# ContentType vs Http Method
+
+In most cases, the following standard can be used:
+
+* HTTP GET/POST/PUT/DELETE > ContentType = application/json
+* HTTP PATCH > ContentType = application/json-patch+json
+
+But there are some exceptions, e.g.:
+
+* Create Work Item: POST, ContentType = application/json-patch+json
+* Teamfieldvalues - Update: PATCH, ContentType = application/json
+* Comments - Update: PATCH, ContentType = application/json
+
+See: https://developercommunity.visualstudio.com/t/REST-API-ContentType-unclear-from-docume/10355958
+I used the **Feedback** button, but Microsoft never got back to me on this.
