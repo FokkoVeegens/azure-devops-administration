@@ -80,7 +80,7 @@ function Write-Log([string]$Message, [ValidateSet("I", "W", "E")]$Level = "I", [
 
 function Get-JsonOutput($uri, [bool]$usevalueproperty = $true)
 {
-    $output = (invoke-webrequest -Uri $uri -Method GET -ContentType "application/json" -Headers $header) | ConvertFrom-Json
+    $output = Invoke-RestMethod -Uri $uri -Method GET -ContentType "application/json" -Headers $header
     if ($usevalueproperty)
     {
         return $output.value
@@ -93,7 +93,7 @@ function Get-JsonOutput($uri, [bool]$usevalueproperty = $true)
 
 function Invoke-RestPost ($uri, $body, [bool]$usevalueproperty = $true)
 {
-    $output = (Invoke-WebRequest -Uri $uri -Method POST -ContentType "application/json" -Body $body -Headers $header ) | ConvertFrom-Json
+    $output = Invoke-RestMethod -Uri $uri -Method POST -ContentType "application/json" -Body $body -Headers $header
     if ($usevalueproperty)
     {
         return $output.value
