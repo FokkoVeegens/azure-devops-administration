@@ -187,9 +187,16 @@ function Get-LatestTfvcChanges ($teamproject)
     }
 }
 
-function Get-LatesGitRepoPush ($repoid)
+function Get-LatestGitRepoPush ($repoid)
 {
-    $result = Get-JsonOutput -uri "$coll/_apis/git/repositories/$repoid/pushes?`$top=1"
+    $result = $null
+    try {
+        $result = Get-JsonOutput -uri "$coll/_apis/git/repositories/$repoid/pushes?`$top=1"
+    }
+    catch {
+        Write-Log "Error getting Git repo (repo: $reponame) push date: $_"
+    }
+    
     if ($result)
     {
         return $result.date
@@ -207,7 +214,7 @@ function Get-LatestGitChange ($teamproject)
     $repocontaininglatestchange = ""
     foreach ($repo in $repos)
     {
-        [datetime]$latestgitrepopush = Get-LatesGitRepoPush -teamproject $teamproject -repoid $repo.id
+        [datetime]$latestgitrepopush = Get-LatestGitRepoPush -teamproject $teamproject -repoid $repo.id -reponame $repo.name
         if ($latestgitrepopush -gt $lastrepochange)
         {
             $lastrepochange = $latestgitrepopush
