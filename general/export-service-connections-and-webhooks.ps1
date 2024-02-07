@@ -39,7 +39,7 @@ foreach ($project in $projects) {
         $serviceconnection.Name = $svcconn.name
         $serviceconnection.Type = $svcconn.type
         $serviceconnection.Url = $svcconn.url
-        $serviceconnections.Add($serviceconnection)
+        $null = $serviceconnections.Add($serviceconnection)
     }
 }
 
