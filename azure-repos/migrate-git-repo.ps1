@@ -147,7 +147,7 @@ function Invoke-AzDoRepoMigration {
 
                     "name"          = "Git Import"
                     "type"          = "git"
-                    "url"           = "https://$DestinationOrganizationName@dev.azure.com/$DestinationOrganizationName/$SourceProjectName/_git/$SourceRepoName"
+                    "url"           = "https://$SourceOrganizationName@dev.azure.com/$SourceOrganizationName/$SourceProjectName/_git/$SourceRepoName"
 
                     "authorization" = @{
                         "parameters" = @{
