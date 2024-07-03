@@ -109,9 +109,13 @@ $output = ""
 $TeamProject = Find-TeamProject -teamProjectName $TeamProjectName
 $repos = Get-Repos -teamProject $TeamProject
 foreach ($repo in $repos) {
+    if ($repo.isDisabled) {
+        Write-Host "Repo '$($repo.name)' is disabled; skipping"
+        continue
+    }
     $stats = Get-Stats -teamProject $TeamProject -repo $repo
     foreach ($stat in $stats) {
-        $output += "$($repo.name)|$($stat.name)|$($stat.commit.committer.date.ToString("yyyy-MM-dd HH:mm:ss"))`n"
+        $output += "$($repo.name)$CsvSeparator$($stat.name)$CsvSeparator$($stat.commit.committer.date.ToString("yyyy-MM-dd HH:mm:ss"))`n"
     }
 }
 $output | Set-Content -Path $TargetFile -Encoding utf8
